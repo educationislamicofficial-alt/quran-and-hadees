@@ -1,0 +1,168 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quran & Hadees</title>
+<style>
+body{margin:0;font-family:Arial;background:#f3f7f3;color:#183c2d}
+header{background:#104c39;color:white;text-align:center;padding:25px}
+h1{margin:8px}
+nav{display:flex;justify-content:center;gap:10px;padding:15px;flex-wrap:wrap}
+button,select{padding:12px;border:0;border-radius:8px;background:#17664b;color:white;font-size:15px}
+main{padding:15px;max-width:700px;margin:auto}
+.card{background:white;padding:18px;margin:12px 0;border-radius:12px;box-shadow:0 2px 8px #ddd}
+.arabic{font-size:27px;line-height:2.1;text-align:right;direction:rtl}
+.translation{line-height:1.8;margin-top:12px}
+select{background:#17664b;margin:8px}
+#verses{margin-top:15px}
+footer{text-align:center;padding:20px;color:#666}
+</style>
+</head>
+<body>
+<header>
+<div style="font-size:30px">﷽</div>
+<h1>Quran & Hadees</h1>
+<p>Learn Islam • Follow Sunnah • Share Knowledge</p>
+</header>
+
+<nav>
+<button onclick="setLanguage('ur')">اردو</button>
+<button onclick="setLanguage('en')">English</button>
+</nav>
+
+<main>
+<div class="card">
+<h2 id="welcome">Welcome — choose a section</h2>
+<button onclick="showQuran()">📖 Quran Pak</button>
+<button onclick="showMessage('Hadith','Verified Hadith collection will be added after checking authenticity.')">📚 Hadees</button>
+<button onclick="showMessage('Daily Duas','Daily duas will be added with verified references.')">🤲 Daily Duas</button>
+<button onclick="showMessage('Namaz','Namaz guide coming soon.')">🕌 Namaz</button>
+<button onclick="showMessage('Islamic Quiz','Islamic Quiz coming soon.')">🧠 Islamic Quiz</button>
+<button onclick="showMessage('Islamic Stories','Stories with verified sources coming soon.')">🌙 Islamic Stories</button>
+</div>
+
+<section class="card" id="reader">
+<h2>📖 Quran Reader</h2>
+<p>Select a Surah to read Quran in Arabic, Urdu and English.</p>
+<select id="surah"></select>
+<button onclick="loadSurah()">Open Surah</button>
+<p id="status"></p>
+<div id="verses"></div>
+</section>
+</main>
+
+<footer>Quran & Hadees • Free reading • No account required</footer>
+
+<script>
+let language='en';
+
+const names=[
+"Al-Fatihah","Al-Baqarah","Aal-E-Imran","An-Nisa","Al-Maidah",
+"Al-Anam","Al-Araf","Al-Anfal","At-Tawbah","Yunus",
+"Hud","Yusuf","Ar-Rad","Ibrahim","Al-Hijr",
+"An-Nahl","Al-Isra","Al-Kahf","Maryam","Ta-Ha",
+"Al-Anbiya","Al-Hajj","Al-Muminun","An-Nur","Al-Furqan",
+"Ash-Shuara","An-Naml","Al-Qasas","Al-Ankabut","Ar-Rum",
+"Luqman","As-Sajdah","Al-Ahzab","Saba","Fatir",
+"Ya-Sin","As-Saffat","Sad","Az-Zumar","Ghafir",
+"Fussilat","Ash-Shura","Az-Zukhruf","Ad-Dukhan","Al-Jathiyah",
+"Al-Ahqaf","Muhammad","Al-Fath","Al-Hujurat","Qaf",
+"Adh-Dhariyat","At-Tur","An-Najm","Al-Qamar","Ar-Rahman",
+"Al-Waqiah","Al-Hadid","Al-Mujadilah","Al-Hashr","Al-Mumtahanah",
+"As-Saff","Al-Jumuah","Al-Munafiqun","At-Taghabun","At-Talaq",
+"At-Tahrim","Al-Mulk","Al-Qalam","Al-Haqqah","Al-Maarij",
+"Nuh","Al-Jinn","Al-Muzzammil","Al-Muddaththir","Al-Qiyamah",
+"Al-Insan","Al-Mursalat","An-Naba","An-Naziat","Abasa",
+"At-Takwir","Al-Infitar","Al-Mutaffifin","Al-Inshiqaq","Al-Buruj",
+"At-Tariq","Al-Ala","Al-Ghashiyah","Al-Fajr","Al-Balad",
+"Ash-Shams","Al-Layl","Ad-Duha","Ash-Sharh","At-Tin",
+"Al-Alaq","Al-Qadr","Al-Bayyinah","Az-Zalzalah","Al-Adiyat",
+"Al-Qariah","At-Takathur","Al-Asr","Al-Humazah","Al-Fil",
+"Quraysh","Al-Maun","Al-Kawthar","Al-Kafirun","An-Nasr",
+"Al-Masad","Al-Ikhlas","Al-Falaq","An-Nas"
+];
+
+const select=document.getElementById('surah');
+names.forEach((name,i)=>{
+let option=document.createElement('option');
+option.value=i+1;
+option.textContent=(i+1)+". "+name;
+select.appendChild(option);
+});
+
+function setLanguage(lang){
+language=lang;
+document.documentElement.lang=lang;
+document.getElementById('welcome').textContent=
+lang==='ur'?'خوش آمدید — ایک حصہ منتخب کریں':'Welcome — choose a section';
+}
+
+function showQuran(){
+document.getElementById('reader').scrollIntoView({behavior:'smooth'});
+}
+
+function showMessage(title,message){
+document.getElementById('verses').innerHTML=
+'<div class="card"><h2>'+title+'</h2><p>'+message+'</p></div>';
+showQuran();
+}
+
+async function loadSurah(){
+const number=select.value;
+const output=document.getElementById('verses');
+const status=document.getElementById('status');
+
+output.innerHTML='';
+status.textContent='Loading Quran...';
+
+try{
+const response=await fetch(
+'https://api.alquran.cloud/v1/surah/'+number+
+'/editions/quran-uthmani,ur.jalandhry,en.sahih'
+);
+if(!response.ok) throw new Error('Network error');
+
+const result=await response.json();
+if(result.code!==200) throw new Error('Data unavailable');
+
+const arabic=result.data[0].ayahs;
+const urdu=result.data[1].ayahs;
+const english=result.data[2].ayahs;
+
+const title=result.data[0].name;
+output.innerHTML='<h2>'+title+'</h2>';
+
+arabic.forEach((ayah,i)=>{
+const card=document.createElement('div');
+card.className='card';
+
+const ar=document.createElement('div');
+ar.className='arabic';
+ar.textContent=ayah.text+' ۞ '+ayah.numberInSurah;
+
+const ur=document.createElement('p');
+ur.className='translation';
+ur.textContent='اردو: '+urdu[i].text;
+
+const en=document.createElement('p');
+en.className='translation';
+en.textContent='English: '+english[i].text;
+
+card.appendChild(ar);
+card.appendChild(ur);
+card.appendChild(en);
+output.appendChild(card);
+});
+
+status.textContent='';
+
+}catch(error){
+status.textContent=
+'Unable to load Quran. Please check your internet connection and try again.';
+}
+}
+</script>
+</body>
+</html>
