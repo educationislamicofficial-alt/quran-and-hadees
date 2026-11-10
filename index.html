@@ -190,6 +190,12 @@ status.textContent=
   <p>Reference: Sahih al-Bukhari 1</p>
 </section>
 
-
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js');
+  });
+}
+</script>
 </body>
 </html>
